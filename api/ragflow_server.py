@@ -43,6 +43,7 @@ from api.utils import show_configs
 from rag.settings import print_rag_settings
 
 
+
 def update_progress():
     while True:
         time.sleep(6)

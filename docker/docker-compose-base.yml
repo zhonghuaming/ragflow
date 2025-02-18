@@ -5,7 +5,7 @@ services:
       - elasticsearch
     image: elasticsearch:${STACK_VERSION}
     volumes:
-      - esdata01:/usr/share/elasticsearch/data
+      - ./data/esdata01:/usr/share/elasticsearch/data
     ports:
       - ${ES_PORT}:9200
     env_file: .env
@@ -34,6 +34,7 @@ services:
     networks:
       - ragflow
     restart: on-failure
+    privileged: true
 
   infinity:
     container_name: ragflow-infinity
@@ -41,7 +42,7 @@ services:
       - infinity
     image: infiniflow/infinity:v0.6.0-dev3
     volumes:
-      - infinity_data:/var/infinity
+      - ./data/infinity_data:/var/infinity
       - ./infinity_conf.toml:/infinity_conf.toml
     command: ["-f", "/infinity_conf.toml"]
     ports:
@@ -64,6 +65,7 @@ services:
       timeout: 10s
       retries: 120
     restart: on-failure
+    privileged: true
 
 
   mysql:
@@ -84,7 +86,7 @@ services:
     ports:
       - ${MYSQL_PORT}:3306
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./data/mysql_data:/var/lib/mysql
       - ./init.sql:/data/application/init.sql
     networks:
       - ragflow
@@ -94,6 +96,7 @@ services:
       timeout: 10s
       retries: 3
     restart: on-failure
+    privileged: true
 
   minio:
     image: quay.io/minio/minio:RELEASE.2023-12-20T01-00-02Z
@@ -108,10 +111,11 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
       - TZ=${TIMEZONE}
     volumes:
-      - minio_data:/data
+      - ./data/minio_data:/data
     networks:
       - ragflow
     restart: on-failure
+    privileged: true
 
   redis:
     # swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/valkey/valkey:8
@@ -122,24 +126,25 @@ services:
     ports:
       - ${REDIS_PORT}:6379
     volumes:
-      - redis_data:/data
+      - ./data/redis_data:/data
     networks:
       - ragflow
     restart: on-failure
+    privileged: true
 
 
 
-volumes:
-  esdata01:
-    driver: local
-  infinity_data:
-    driver: local
-  mysql_data:
-    driver: local
-  minio_data:
-    driver: local
-  redis_data:
-    driver: local
+# volumes:
+#   esdata01:
+#     driver: local
+#   infinity_data:
+#     driver: local
+#   mysql_data:
+#     driver: local
+#   minio_data:
+#     driver: local
+#   redis_data:
+#     driver: local
 
 networks:
   ragflow:
