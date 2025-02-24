@@ -5,7 +5,7 @@ services:
       - elasticsearch
     image: elasticsearch:${STACK_VERSION}
     volumes:
-      - esdata01:/usr/share/elasticsearch/data
+      - ./data/esdata01:/usr/share/elasticsearch/data
     ports:
       - ${ES_PORT}:9200
     env_file: .env
@@ -27,7 +27,7 @@ services:
         soft: -1
         hard: -1
     healthcheck:
-      test: ["CMD-SHELL", "curl http://localhost:9200"]
+      test: [ "CMD-SHELL", "curl http://localhost:9200" ]
       interval: 10s
       timeout: 10s
       retries: 120
@@ -35,35 +35,54 @@ services:
       - ragflow
     restart: on-failure
 
-  infinity:
-    container_name: ragflow-infinity
-    profiles:
-      - infinity
-    image: infiniflow/infinity:v0.6.0-dev3
-    volumes:
-      - infinity_data:/var/infinity
-      - ./infinity_conf.toml:/infinity_conf.toml
-    command: ["-f", "/infinity_conf.toml"]
+  kibana:
+    container_name: ragflow-kibana
+    image: kibana:${STACK_VERSION}
     ports:
-      - ${INFINITY_THRIFT_PORT}:23817
-      - ${INFINITY_HTTP_PORT}:23820
-      - ${INFINITY_PSQL_PORT}:5432
+      - ${KIBANA_PORT}:5601
     env_file: .env
     environment:
-      - TZ=${TIMEZONE}
-    mem_limit: ${MEM_LIMIT}
-    ulimits:
-      nofile:
-        soft: 500000
-        hard: 500000
+      - elasticsearch.username=${KIBANA_USER}
+      - elasticsearch.password=${KIBANA_PASSWORD}
+      - network.publish_host=kibana
+      - server.name=kibana
+      - server.host=0.0.0.0
+      - elasticsearch.hosts=http://es01:9200
+      - monitoring.ui.container.elasticsearch.enabled=true
+    #      elasticsearch.hosts: ["http://es01:9200"]
     networks:
       - ragflow
-    healthcheck:
-      test: ["CMD", "curl", "http://localhost:23820/admin/node/current"]
-      interval: 10s
-      timeout: 10s
-      retries: 120
     restart: on-failure
+
+#  infinity:
+#    container_name: ragflow-infinity
+#    profiles:
+#      - infinity
+#    image: infiniflow/infinity:v0.6.0-dev3
+#    volumes:
+#      - ./data/infinity_data:/var/infinity
+#      - ./infinity_conf.toml:/infinity_conf.toml
+#    command: [ "-f", "/infinity_conf.toml" ]
+#    ports:
+#      - ${INFINITY_THRIFT_PORT}:23817
+#      - ${INFINITY_HTTP_PORT}:23820
+#      - ${INFINITY_PSQL_PORT}:5432
+#    env_file: .env
+#    environment:
+#      - TZ=${TIMEZONE}
+#    mem_limit: ${MEM_LIMIT}
+#    ulimits:
+#      nofile:
+#        soft: 500000
+#        hard: 500000
+#    networks:
+#      - ragflow
+#    healthcheck:
+#      test: [ "CMD", "curl", "http://localhost:23820/admin/node/current" ]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 120
+#    restart: on-failure
 
 
   mysql:
@@ -84,12 +103,12 @@ services:
     ports:
       - ${MYSQL_PORT}:3306
     volumes:
-      - mysql_data:/var/lib/mysql
+      - ./data/mysql_data:/var/lib/mysql
       - ./init.sql:/data/application/init.sql
     networks:
       - ragflow
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-uroot", "-p${MYSQL_PASSWORD}"]
+      test: [ "CMD", "mysqladmin" ,"ping", "-uroot", "-p${MYSQL_PASSWORD}" ]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -108,10 +127,11 @@ services:
       - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
       - TZ=${TIMEZONE}
     volumes:
-      - minio_data:/data
+      - ./data/minio_data:/data
     networks:
       - ragflow
     restart: on-failure
+    privileged: true
 
   redis:
     # swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/valkey/valkey:8
@@ -122,24 +142,24 @@ services:
     ports:
       - ${REDIS_PORT}:6379
     volumes:
-      - redis_data:/data
+      - ./data/redis_data:/data
     networks:
       - ragflow
     restart: on-failure
 
 
 
-volumes:
-  esdata01:
-    driver: local
-  infinity_data:
-    driver: local
-  mysql_data:
-    driver: local
-  minio_data:
-    driver: local
-  redis_data:
-    driver: local
+#volumes:
+#  esdata01:
+#    driver: local
+#  infinity_data:
+#    driver: local
+#  mysql_data:
+#    driver: local
+#  minio_data:
+#    driver: local
+#  redis_data:
+#    driver: local
 
 networks:
   ragflow:
