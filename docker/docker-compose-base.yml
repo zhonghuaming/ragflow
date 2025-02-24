@@ -27,62 +27,45 @@ services:
         soft: -1
         hard: -1
     healthcheck:
-      test: [ "CMD-SHELL", "curl http://localhost:9200" ]
+      test: ["CMD-SHELL", "curl http://localhost:9200"]
       interval: 10s
       timeout: 10s
       retries: 120
     networks:
       - ragflow
     restart: on-failure
+    privileged: true
 
-  kibana:
-    container_name: ragflow-kibana
-    image: kibana:${STACK_VERSION}
+  infinity:
+    container_name: ragflow-infinity
+    profiles:
+      - infinity
+    image: infiniflow/infinity:v0.6.0-dev3
+    volumes:
+      - ./data/infinity_data:/var/infinity
+      - ./infinity_conf.toml:/infinity_conf.toml
+    command: ["-f", "/infinity_conf.toml"]
     ports:
-      - ${KIBANA_PORT}:5601
+      - ${INFINITY_THRIFT_PORT}:23817
+      - ${INFINITY_HTTP_PORT}:23820
+      - ${INFINITY_PSQL_PORT}:5432
     env_file: .env
     environment:
-      - elasticsearch.username=${KIBANA_USER}
-      - elasticsearch.password=${KIBANA_PASSWORD}
-      - network.publish_host=kibana
-      - server.name=kibana
-      - server.host=0.0.0.0
-      - elasticsearch.hosts=http://es01:9200
-      - monitoring.ui.container.elasticsearch.enabled=true
-    #      elasticsearch.hosts: ["http://es01:9200"]
+      - TZ=${TIMEZONE}
+    mem_limit: ${MEM_LIMIT}
+    ulimits:
+      nofile:
+        soft: 500000
+        hard: 500000
     networks:
       - ragflow
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:23820/admin/node/current"]
+      interval: 10s
+      timeout: 10s
+      retries: 120
     restart: on-failure
-
-#  infinity:
-#    container_name: ragflow-infinity
-#    profiles:
-#      - infinity
-#    image: infiniflow/infinity:v0.6.0-dev3
-#    volumes:
-#      - ./data/infinity_data:/var/infinity
-#      - ./infinity_conf.toml:/infinity_conf.toml
-#    command: [ "-f", "/infinity_conf.toml" ]
-#    ports:
-#      - ${INFINITY_THRIFT_PORT}:23817
-#      - ${INFINITY_HTTP_PORT}:23820
-#      - ${INFINITY_PSQL_PORT}:5432
-#    env_file: .env
-#    environment:
-#      - TZ=${TIMEZONE}
-#    mem_limit: ${MEM_LIMIT}
-#    ulimits:
-#      nofile:
-#        soft: 500000
-#        hard: 500000
-#    networks:
-#      - ragflow
-#    healthcheck:
-#      test: [ "CMD", "curl", "http://localhost:23820/admin/node/current" ]
-#      interval: 10s
-#      timeout: 10s
-#      retries: 120
-#    restart: on-failure
+    privileged: true
 
 
   mysql:
@@ -108,11 +91,12 @@ services:
     networks:
       - ragflow
     healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-uroot", "-p${MYSQL_PASSWORD}" ]
+      test: ["CMD", "mysqladmin" ,"ping", "-uroot", "-p${MYSQL_PASSWORD}"]
       interval: 10s
       timeout: 10s
       retries: 3
     restart: on-failure
+    privileged: true
 
   minio:
     image: quay.io/minio/minio:RELEASE.2023-12-20T01-00-02Z
@@ -146,20 +130,21 @@ services:
     networks:
       - ragflow
     restart: on-failure
+    privileged: true
 
 
 
-#volumes:
-#  esdata01:
-#    driver: local
-#  infinity_data:
-#    driver: local
-#  mysql_data:
-#    driver: local
-#  minio_data:
-#    driver: local
-#  redis_data:
-#    driver: local
+# volumes:
+#   esdata01:
+#     driver: local
+#   infinity_data:
+#     driver: local
+#   mysql_data:
+#     driver: local
+#   minio_data:
+#     driver: local
+#   redis_data:
+#     driver: local
 
 networks:
   ragflow:
