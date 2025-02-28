@@ -18,10 +18,10 @@ from functools import partial
 import pandas as pd
 from api.db import LLMType
 from api.db.services.conversation_service import structure_answer
-from api.db.services.dialog_service import message_fit_in
 from api.db.services.llm_service import LLMBundle
 from api import settings
 from agent.component.base import ComponentBase, ComponentParamBase
+from rag.prompts import message_fit_in
 
 
 class GenerateParam(ComponentParamBase):
@@ -198,6 +198,7 @@ class Generate(ComponentBase):
         if len(msg) < 2:
             msg.append({"role": "user", "content": "Output: "})
         ans = chat_mdl.chat(msg[0]["content"], msg[1:], self._param.gen_conf())
+        ans = re.sub(r"<think>.*</think>", "", ans, flags=re.DOTALL)
 
         if self._param.cite and "content_ltks" in retrieval_res.columns and "vector" in retrieval_res.columns:
             res = self.set_cite(retrieval_res, ans)
