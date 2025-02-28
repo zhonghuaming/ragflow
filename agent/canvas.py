@@ -176,13 +176,10 @@ class Canvas:
             except Exception as e:
                 ans = ComponentBase.be_output(str(e))
             self.path[-1].append(cpn_id)
-            print("回复:")
             if kwargs.get("stream"):
                 for an in ans():
-                    print(an)
                     yield an
             else:
-                print(ans)
                 yield ans
             return
 

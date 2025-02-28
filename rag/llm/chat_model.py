@@ -28,6 +28,7 @@ import os
 import json
 import requests
 import asyncio
+import logging
 
 LENGTH_NOTIFICATION_CN = "······\n由于长度的原因，回答被截断了，要继续吗？"
 LENGTH_NOTIFICATION_EN = "...\nFor the content length reason, it stopped, continue?"
@@ -410,6 +411,9 @@ class OllamaChat(Base):
         self.model_name = model_name
 
     def chat(self, system, history, gen_conf):
+        logging.debug(f"system:{system}")
+        logging.debug(f"history:{history}")
+        logging.debug(f"gen_conf:{gen_conf}")
         if system:
             history.insert(0, {"role": "system", "content": system})
         try:
@@ -436,6 +440,9 @@ class OllamaChat(Base):
             return "**ERROR**: " + str(e), 0
 
     def chat_streamly(self, system, history, gen_conf):
+        logging.debug(f"system:{system}")
+        logging.debug(f"history:{history}")
+        logging.debug(f"gen_conf:{gen_conf}")
         if system:
             history.insert(0, {"role": "system", "content": system})
         options = {}
