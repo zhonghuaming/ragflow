@@ -19,6 +19,8 @@ import os.path
 import sys
 from logging.handlers import RotatingFileHandler
 
+initialized_root_logger = False
+
 import coloredlogs
 
 
@@ -32,6 +34,9 @@ def get_project_base_directory():
     )
     return PROJECT_BASE
 
+# def initRootLogger(logfile_basename: str, log_format: str = "%(asctime)-15s %(levelname)-8s %(process)d %(message)s"):
+#     global initialized_root_logger
+#     if initialized_root_logger:
 
 # def initRootLogger(logfile_basename: str, log_format: str = "%(asctime)-15s %(levelname)-8s %(process)d %(message)s"):
 def initRootLogger(logfile_basename: str,
@@ -39,7 +44,10 @@ def initRootLogger(logfile_basename: str,
     logger = logging.getLogger()
     if logger.hasHandlers():
         return
+    initialized_root_logger = True
 
+    logger = logging.getLogger()
+    logger.handlers.clear()
     log_path = os.path.abspath(os.path.join(get_project_base_directory(), "logs", f"{logfile_basename}.log"))
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
@@ -63,7 +71,7 @@ def initRootLogger(logfile_basename: str,
     pkg_levels = {}
     for pkg_name_level in LOG_LEVELS.split(","):
         terms = pkg_name_level.split("=")
-        if len(terms) != 2:
+        if len(terms)!= 2:
             continue
         pkg_name, pkg_level = terms[0], terms[1]
         pkg_name = pkg_name.strip()
