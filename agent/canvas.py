@@ -15,7 +15,6 @@
 #
 import logging
 import json
-from abc import ABC
 from copy import deepcopy
 from functools import partial
 
@@ -25,7 +24,7 @@ from agent.component import component_class
 from agent.component.base import ComponentBase
 
 
-class Canvas(ABC):
+class Canvas:
     """
     dsl = {
         "components": {
@@ -177,13 +176,10 @@ class Canvas(ABC):
             except Exception as e:
                 ans = ComponentBase.be_output(str(e))
             self.path[-1].append(cpn_id)
-            print("回复:")
             if kwargs.get("stream"):
                 for an in ans():
-                    print(an)
                     yield an
             else:
-                print(ans)
                 yield ans
             return
 

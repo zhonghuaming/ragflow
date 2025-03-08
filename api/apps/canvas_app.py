@@ -133,7 +133,7 @@ def run():
         def sse():
             nonlocal answer, cvs
             try:
-                logging.debug(f"dsl:{cvs.dsl}")
+                # logging.debug(f"dsl:{cvs.dsl}")
                 for ans in canvas.run(stream=True):
                     if ans.get("running_status"):
                         yield "data:" + json.dumps({"code": 0, "message": "",
@@ -147,9 +147,9 @@ def run():
                     yield "data:" + json.dumps({"code": 0, "message": "", "data": ans}, ensure_ascii=False) + "\n\n"
 
                 canvas.messages.append({"role": "assistant", "content": final_ans["content"], "id": message_id})
-                logging.debug(f"当前会话:{canvas.messages}")
+                # logging.debug(f"当前会话:{canvas.messages}")
                 canvas.history.append(("assistant", final_ans["content"]))
-                logging.debug(f"历史会话:{canvas.history}")
+                # logging.debug(f"历史会话:{canvas.history}")
                 if not canvas.path[-1]:
                     canvas.path.pop(-1)
                 if final_ans.get("reference"):

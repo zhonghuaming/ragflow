@@ -122,7 +122,7 @@ def load_model(model_dir, nm):
     return loaded_model
 
 
-class TextRecognizer(object):
+class TextRecognizer:
     def __init__(self, model_dir):
         self.rec_image_shape = [int(v) for v in "3, 48, 320".split(",")]
         self.rec_batch_num = 16
@@ -393,7 +393,7 @@ class TextRecognizer(object):
         return rec_res, time.time() - st
 
 
-class TextDetector(object):
+class TextDetector:
     def __init__(self, model_dir):
         pre_process_list = [{
             'DetResizeForTest': {
@@ -506,7 +506,7 @@ class TextDetector(object):
         return dt_boxes, time.time() - st
 
 
-class OCR(object):
+class OCR:
     def __init__(self, model_dir=None):
         """
         If you have trouble downloading HuggingFace models, -_^ this might help!!
@@ -619,6 +619,16 @@ class OCR(object):
         if score < self.drop_score:
             return ""
         return text
+
+    def recognize_batch(self, img_list):
+        rec_res, elapse = self.text_recognizer(img_list)
+        texts = []
+        for i in range(len(rec_res)):
+            text, score = rec_res[i]
+            if score < self.drop_score:
+                text = ""
+            texts.append(text)
+        return texts
 
     def __call__(self, img, cls=True):
         time_dict = {'det': 0, 'rec': 0, 'cls': 0, 'all': 0}
