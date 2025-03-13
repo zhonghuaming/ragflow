@@ -35,14 +35,10 @@ def get_project_base_directory():
     return PROJECT_BASE
 
 # def initRootLogger(logfile_basename: str, log_format: str = "%(asctime)-15s %(levelname)-8s %(process)d %(message)s"):
-#     global initialized_root_logger
-#     if initialized_root_logger:
-
-# def initRootLogger(logfile_basename: str, log_format: str = "%(asctime)-15s %(levelname)-8s %(process)d %(message)s"):
 def initRootLogger(logfile_basename: str,
                    log_format: str = "%(asctime)s %(levelname)-2s %(filename)-8s %(lineno)d %(funcName)s() %(message)s"):
-    logger = logging.getLogger()
-    if logger.hasHandlers():
+    global initialized_root_logger
+    if initialized_root_logger:
         return
     initialized_root_logger = True
 
@@ -63,7 +59,7 @@ def initRootLogger(logfile_basename: str,
     logger.addHandler(handler2)
 
     # 使用 coloredlogs 设置控制台日志的颜色
-    coloredlogs.install(logger=logger)
+    # coloredlogs.install(logger=logger)
 
     logging.captureWarnings(True)
 
