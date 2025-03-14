@@ -54,7 +54,6 @@ class Base(ABC):
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=history,
-                max_tokens=gen_conf.get("max_tokens", 1000),
                 temperature=gen_conf.get("temperature", 0.3),
                 top_p=gen_conf.get("top_p", 0.7)
             )
@@ -79,7 +78,6 @@ class Base(ABC):
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=history,
-                max_tokens=gen_conf.get("max_tokens", 1000),
                 temperature=gen_conf.get("temperature", 0.3),
                 top_p=gen_conf.get("top_p", 0.7),
                 stream=True
@@ -165,8 +163,7 @@ class GptV4(Base):
 
         res = self.client.chat.completions.create(
             model=self.model_name,
-            messages=prompt,
-            max_tokens=max_tokens,
+            messages=prompt
         )
         return res.choices[0].message.content.strip(), res.usage.total_tokens
 
@@ -189,8 +186,7 @@ class AzureGptV4(Base):
 
         res = self.client.chat.completions.create(
             model=self.model_name,
-            messages=prompt,
-            max_tokens=max_tokens,
+            messages=prompt
         )
         return res.choices[0].message.content.strip(), res.usage.total_tokens
 
@@ -249,7 +245,6 @@ class QWenCV(Base):
             if his["role"] == "user":
                 his["content"] = self.chat_prompt(his["content"], image)
         response = MultiModalConversation.call(model=self.model_name, messages=history,
-                                               max_tokens=gen_conf.get("max_tokens", 1000),
                                                temperature=gen_conf.get("temperature", 0.3),
                                                top_p=gen_conf.get("top_p", 0.7))
 
@@ -279,7 +274,6 @@ class QWenCV(Base):
         tk_count = 0
         try:
             response = MultiModalConversation.call(model=self.model_name, messages=history,
-                                                   max_tokens=gen_conf.get("max_tokens", 1000),
                                                    temperature=gen_conf.get("temperature", 0.3),
                                                    top_p=gen_conf.get("top_p", 0.7),
                                                    stream=True)
@@ -314,8 +308,7 @@ class Zhipu4V(Base):
 
         res = self.client.chat.completions.create(
             model=self.model_name,
-            messages=prompt,
-            max_tokens=max_tokens,
+            messages=prompt
         )
         return res.choices[0].message.content.strip(), res.usage.total_tokens
 
@@ -330,7 +323,6 @@ class Zhipu4V(Base):
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=history,
-                max_tokens=gen_conf.get("max_tokens", 1000),
                 temperature=gen_conf.get("temperature", 0.3),
                 top_p=gen_conf.get("top_p", 0.7)
             )
@@ -352,7 +344,6 @@ class Zhipu4V(Base):
             response = self.client.chat.completions.create(
                 model=self.model_name,
                 messages=history,
-                max_tokens=gen_conf.get("max_tokens", 1000),
                 temperature=gen_conf.get("temperature", 0.3),
                 top_p=gen_conf.get("top_p", 0.7),
                 stream=True
@@ -384,12 +375,10 @@ class OllamaCV(Base):
     def describe(self, image, max_tokens=1024):
         prompt = self.prompt("")
         try:
-            options = {"num_predict": max_tokens}
             response = self.client.generate(
                 model=self.model_name,
                 prompt=prompt[0]["content"][1]["text"],
-                images=[image],
-                options=options
+                images=[image]
             )
             ans = response["response"].strip()
             return ans, 128
@@ -407,8 +396,6 @@ class OllamaCV(Base):
             options = {}
             if "temperature" in gen_conf:
                 options["temperature"] = gen_conf["temperature"]
-            if "max_tokens" in gen_conf:
-                options["num_predict"] = gen_conf["max_tokens"]
             if "top_p" in gen_conf:
                 options["top_k"] = gen_conf["top_p"]
             if "presence_penalty" in gen_conf:
@@ -437,8 +424,6 @@ class OllamaCV(Base):
         options = {}
         if "temperature" in gen_conf:
             options["temperature"] = gen_conf["temperature"]
-        if "max_tokens" in gen_conf:
-            options["num_predict"] = gen_conf["max_tokens"]
         if "top_p" in gen_conf:
             options["top_k"] = gen_conf["top_p"]
         if "presence_penalty" in gen_conf:
@@ -488,8 +473,7 @@ class XinferenceCV(Base):
 
         res = self.client.chat.completions.create(
             model=self.model_name,
-            messages=self.prompt(b64),
-            max_tokens=max_tokens,
+            messages=self.prompt(b64)
         )
         return res.choices[0].message.content.strip(), res.usage.total_tokens
 
@@ -506,15 +490,13 @@ class GeminiCV(Base):
 
     def describe(self, image, max_tokens=2048):
         from PIL.Image import open
-        gen_config = {'max_output_tokens': max_tokens}
         prompt = "请用中文详细描述一下图中的内容，比如时间，地点，人物，事情，人物心情等，如果有数据请提取出数据。" if self.lang.lower() == "chinese" else \
             "Please describe the content of this picture, like where, when, who, what happen. If it has number data, please extract them out."
         b64 = self.image2base64(image)
         img = open(BytesIO(base64.b64decode(b64)))
         input = [prompt, img]
         res = self.model.generate_content(
-            input,
-            generation_config=gen_config,
+            input
         )
         return res.text, res.usage_metadata.total_token_count
 
@@ -534,7 +516,7 @@ class GeminiCV(Base):
             history[-1]["parts"].append("data:image/jpeg;base64," + image)
 
             response = self.model.generate_content(history, generation_config=GenerationConfig(
-                max_output_tokens=gen_conf.get("max_tokens", 1000), temperature=gen_conf.get("temperature", 0.3),
+                temperature=gen_conf.get("temperature", 0.3),
                 top_p=gen_conf.get("top_p", 0.7)))
 
             ans = response.text
@@ -560,7 +542,7 @@ class GeminiCV(Base):
             history[-1]["parts"].append("data:image/jpeg;base64," + image)
 
             response = self.model.generate_content(history, generation_config=GenerationConfig(
-                max_output_tokens=gen_conf.get("max_tokens", 1000), temperature=gen_conf.get("temperature", 0.3),
+                temperature=gen_conf.get("temperature", 0.3),
                 top_p=gen_conf.get("top_p", 0.7)), stream=True)
 
             for resp in response:
@@ -627,8 +609,7 @@ class NvidiaCV(Base):
                 "Authorization": f"Bearer {self.key}",
             },
             json={
-                "messages": self.prompt(b64),
-                "max_tokens": max_tokens,
+                "messages": self.prompt(b64)
             },
         )
         response = response.json()
